@@ -126,18 +126,18 @@ The project follows the **KDD process**: Problem Definition → Data Selection �
 ### 🛡️ Leak-free modelling pipeline
 
 ```mermaid
-flowchart LR
-    A[("Raw data<br/>768 × 9")] --> B["Invalid zeros → NaN"]
-    B --> C{{"Stratified split<br/>80 / 20"}}
+flowchart TD
+    A[("Raw data: 768 patients × 9 columns")] --> B["Invalid zeros → NaN"]
+    B --> C{{"Stratified 80 / 20 split"}}
     C -->|"614 rows"| D["Training set"]
-    C -->|"154 rows"| E["Test set<br/>never resampled"]
-    subgraph P ["imblearn Pipeline (fitted on training data only)"]
-        direction LR
-        F["Median<br/>imputation"] --> G["Standard<br/>scaling"] --> H["SMOTE<br/>400 / 400"] --> I["Classifier"]
-    end
+    C -->|"154 rows"| E["Test set (never resampled)"]
     D --> P
-    P --> J["5-fold<br/>cross-validation"]
-    P --> K["Final evaluation"]
+    subgraph P ["imblearn Pipeline: fitted on training data only"]
+        direction LR
+        F["Median imputation"] --> G["Standard scaling"] --> H["SMOTE (400 / 400)"] --> I["Classifier"]
+    end
+    P --> J["5-fold cross-validation"]
+    P --> K["Final test evaluation"]
     E --> K
 ```
 
