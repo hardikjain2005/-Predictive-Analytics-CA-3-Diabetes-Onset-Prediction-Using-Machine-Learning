@@ -1,219 +1,386 @@
-# Diabetes Onset Prediction Using Machine Learning
+<div align="center">
 
-An end-to-end Predictive Analytics / KDD project that predicts whether a patient is likely to have diabetes from routine diagnostic measurements, using the Pima Indians Diabetes Dataset.
+# 🩺 Diabetes Onset Prediction Using Machine Learning
 
-| | |
-|---|---|
-| **Student** | Hardik Jain |
-| **Student ID** | 23070521056 |
-| **Course** | Predictive Analytics |
-| **Project type** | End-to-End Predictive Analytics Model (KDD process) |
+**An end-to-end Predictive Analytics / KDD project that estimates diabetes risk from routine diagnostic measurements**
 
-> **Disclaimer:** This project is for academic and research purposes only. The model is **not** a medical diagnostic system and must not be used for clinical decisions.
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Jupyter](https://img.shields.io/badge/Jupyter-Notebook-F37626?logo=jupyter&logoColor=white)](notebooks/Diabetes_Onset_Prediction.ipynb)
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-ML-F7931E?logo=scikitlearn&logoColor=white)](https://scikit-learn.org/)
+[![XGBoost](https://img.shields.io/badge/XGBoost-Boosting-189AB4)](https://xgboost.readthedocs.io/)
+[![SHAP](https://img.shields.io/badge/SHAP-Explainable%20AI-8A2BE2)](https://shap.readthedocs.io/)
+[![imbalanced-learn](https://img.shields.io/badge/imbalanced--learn-SMOTE-2E8B57)](https://imbalanced-learn.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-### Deliverables
+**Hardik Jain** · Student ID **23070521056** · Predictive Analytics (CA-3)
 
-| Deliverable | File |
-|---|---|
-| Jupyter Notebook (fully executed) | [`notebooks/Diabetes_Onset_Prediction.ipynb`](notebooks/Diabetes_Onset_Prediction.ipynb) |
-| Project Report | [`reports/Diabetes_Onset_Prediction_Report.pdf`](reports/Diabetes_Onset_Prediction_Report.pdf) |
-| Presentation (12 slides + speaker notes) | [`presentation/Diabetes_Onset_Prediction_Presentation.md`](presentation/Diabetes_Onset_Prediction_Presentation.md) |
-| Results | [`results/model_comparison.csv`](results/model_comparison.csv), [`results/metrics.csv`](results/metrics.csv), [`results/figures/`](results/figures) |
+</div>
+
+> [!IMPORTANT]
+> This is an **academic project**. The model is **not** a medical diagnostic system and must not be used to make clinical decisions.
 
 ---
 
-## Problem Statement
+## ⚡ At a Glance
 
-Type 2 diabetes often develops slowly and can go unnoticed for years. Given a patient's diagnostic measurements **X** (glucose, BMI, blood pressure, insulin, age, pregnancies, skin-fold thickness and diabetes pedigree function), predict whether **Outcome = 1 (diabetes)** or **Outcome = 0 (no diabetes)**, and estimate the probability of diabetes.
-
-## Objective
-
-* Build a leak-free, reproducible machine-learning pipeline that walks through every KDD stage.
-* Compare five classification algorithms using metrics suited to an imbalanced screening problem.
-* Interpret the selected model with feature importance and SHAP.
-* Show how such a model could *support* early screening by flagging higher-risk individuals for proper clinical testing.
-
-## Dataset
-
-**Pima Indians Diabetes Dataset.** It was originally collected by the US National Institute of Diabetes and Digestive and Kidney Diseases and is distributed via the UCI Machine Learning Repository.
-
-* Source used: <https://github.com/jbrownlee/Datasets/blob/master/pima-indians-diabetes.data.csv>
-* Stored at: `data/pima-indians-diabetes.csv`. This is the original 768 observations with a header row added. No values were modified.
-* 768 patients (females of Pima Indian heritage, aged at least 21), 8 features, 1 binary target.
-* Class balance: 500 non-diabetic (65.1 %) and 268 diabetic (34.9 %).
-
-If the CSV is missing, the notebook tries to download it automatically. Without internet access, download the file from the link above, add the header row below and save it as `data/pima-indians-diabetes.csv`:
-
-```
-Pregnancies,Glucose,BloodPressure,SkinThickness,Insulin,BMI,DiabetesPedigreeFunction,Age,Outcome
-```
-
-## Features
-
-| Feature | Description |
+| | |
 |---|---|
-| Pregnancies | Number of times pregnant |
-| Glucose | Plasma glucose concentration, 2 h oral glucose tolerance test (mg/dL) |
-| BloodPressure | Diastolic blood pressure (mm Hg) |
-| SkinThickness | Triceps skin-fold thickness (mm) |
-| Insulin | 2-hour serum insulin (µU/mL) |
-| BMI | Body-mass index (kg/m²) |
-| DiabetesPedigreeFunction | Score of diabetes likelihood based on family history |
-| Age | Age in years |
-| **Outcome** | **Target: 0 = no diabetes, 1 = diabetes** |
+| 🎯 **Task** | Binary classification: will a patient have diabetes (Outcome = 1) or not (Outcome = 0)? |
+| 📊 **Data** | Pima Indians Diabetes Dataset: 768 patients, 8 diagnostic features, 35 % diabetic |
+| 🧹 **Key challenge** | Hidden missing values encoded as impossible **zeros** (Insulin 48.7 %, SkinThickness 29.6 %) and class imbalance |
+| 🛡️ **Method** | Leak-free pipeline: median imputation → scaling → SMOTE (training data only) → classifier |
+| 🤖 **Models** | Logistic Regression · KNN · Decision Tree · Random Forest · XGBoost |
+| 🏆 **Final model** | **Random Forest**: recall **0.741**, ROC-AUC **0.809** on the held-out test set (cross-validated ROC-AUC **0.829**) |
+| 🔍 **Top predictor** | **Glucose**, followed by BMI, Age and Diabetes Pedigree Function (confirmed by SHAP) |
 
-## Methodology
+<p align="center">
+  <img src="results/figures/01_kdd_workflow.png" alt="KDD workflow followed in this project" width="95%">
+</p>
 
-1. **Data cleaning:** zeros in Glucose, BloodPressure, SkinThickness, Insulin and BMI are physiologically impossible and are treated as missing (NaN). Insulin is 48.7 % missing and SkinThickness 29.6 %.
-2. **Stratified 80/20 train-test split** (`random_state=42`) *before* any fitting: 614 training and 154 test patients.
-3. **Leak-free pipeline** for every model, fitted on training data only:
-   `SimpleImputer(median) → StandardScaler → SMOTE → Classifier`
-4. **Class imbalance:** SMOTE is applied to the training data only, inside an `imblearn` pipeline, so it is also confined to the training folds during cross-validation. `class_weight="balanced"` was compared as an alternative.
-5. **Evaluation:** 5-fold stratified cross-validation on the training set, plus a final evaluation on the untouched test set.
-6. **Model selection:** a recall-aware rule. A candidate needs recall ≥ 0.70 in both CV and test; among those, the model with the highest mean of the five metrics averaged over CV and test is chosen.
-7. **Interpretation:** impurity-based feature importance, logistic-regression coefficients and SHAP values.
+---
 
-## KDD Workflow
+## 📑 Table of Contents
 
+- [Deliverables](#-deliverables)
+- [Problem Statement & Objectives](#-problem-statement--objectives)
+- [Dataset](#-dataset)
+- [Methodology](#-methodology)
+- [Exploratory Data Analysis](#-exploratory-data-analysis)
+- [Models](#-models)
+- [Results](#-results)
+- [Model Interpretation](#-model-interpretation)
+- [Try a Prediction](#-try-a-prediction)
+- [Project Structure](#-project-structure)
+- [Getting Started](#-getting-started)
+- [Limitations & Future Scope](#-limitations--future-scope)
+- [References](#-references)
+
+---
+
+## 📦 Deliverables
+
+| Deliverable | File | Description |
+|---|---|---|
+| 📓 Jupyter Notebook | [`Diabetes_Onset_Prediction.ipynb`](notebooks/Diabetes_Onset_Prediction.ipynb) | Fully executed, 23 sections covering every KDD stage with explanations |
+| 📄 Project Report | [`Diabetes_Onset_Prediction_Report.pdf`](reports/Diabetes_Onset_Prediction_Report.pdf) | 6 chapters: Introduction, Literature Review, Workflow, Results, Conclusion, References |
+| 🎤 Presentation | [`Diabetes_Onset_Prediction_Presentation.md`](presentation/Diabetes_Onset_Prediction_Presentation.md) | 12 slides with speaker notes and viva preparation |
+| 🧩 Source modules | [`src/`](src) | Reusable preprocessing, model and evaluation code |
+| 📈 Results | [`results/`](results) | Metric tables (CSV) and 17 generated figures |
+
+---
+
+## 🎯 Problem Statement & Objectives
+
+Type 2 diabetes often develops slowly and can go unnoticed for years, and late detection increases the risk of complications. Hospitals already record simple measurements such as plasma glucose, BMI and blood pressure.
+
+> **Problem:** Given a patient's diagnostic measurements **X**, predict whether **Outcome = 1 (diabetes)** or **Outcome = 0 (no diabetes)**, and estimate the probability of diabetes, so that higher-risk individuals can be **flagged for proper clinical testing**.
+
+**Objectives**
+
+1. Identify and correct hidden data-quality problems.
+2. Explore how each measurement relates to the outcome.
+3. Build a reproducible pipeline that **never leaks test data into training**.
+4. Compare five algorithms using metrics suited to an **imbalanced screening** problem.
+5. Choose a final model with a transparent, recall-aware rule, not accuracy alone.
+6. Explain the model's behaviour with **feature importance** and **SHAP**.
+
+---
+
+## 🗂 Dataset
+
+**Pima Indians Diabetes Dataset.** It was originally collected by the US National Institute of Diabetes and Digestive and Kidney Diseases. All 768 subjects are females of Pima Indian heritage aged 21 or older.
+Source: [jbrownlee/Datasets](https://github.com/jbrownlee/Datasets/blob/master/pima-indians-diabetes.data.csv), stored with a header row at [`data/pima-indians-diabetes.csv`](data/pima-indians-diabetes.csv). The observations themselves are unchanged.
+
+| Feature | Description | Unit |
+|---|---|---|
+| Pregnancies | Number of times pregnant | count |
+| Glucose | Plasma glucose, 2 h oral glucose tolerance test | mg/dL |
+| BloodPressure | Diastolic blood pressure | mm Hg |
+| SkinThickness | Triceps skin-fold thickness | mm |
+| Insulin | 2-hour serum insulin | µU/mL |
+| BMI | Body-mass index | kg/m² |
+| DiabetesPedigreeFunction | Score of diabetes history in relatives | – |
+| Age | Age | years |
+| **Outcome** | **Target: 0 = no diabetes, 1 = diabetes** | class |
+
+### 🧹 Hidden missing values
+
+The raw file reports **no missing values**, but five columns contain physiologically impossible **zeros**. These are treated as missing (NaN):
+
+| Feature | Invalid zeros | % of rows |
+|---|---:|---:|
+| Glucose | 5 | 0.65 % |
+| BloodPressure | 35 | 4.56 % |
+| SkinThickness | 227 | 29.56 % |
+| Insulin | 374 | **48.70 %** |
+| BMI | 11 | 1.43 % |
+
+Dropping incomplete rows would discard almost half the data, so the missing values are **imputed with the training-set median** instead.
+
+---
+
+## 🛠 Methodology
+
+The project follows the **KDD process**: Problem Definition → Data Selection → Data Understanding → Data Cleaning → Data Transformation → EDA → Model Construction → Evaluation → Interpretation → Knowledge.
+
+### 🛡️ Leak-free modelling pipeline
+
+```mermaid
+flowchart LR
+    A[("Raw data<br/>768 × 9")] --> B["Invalid zeros → NaN"]
+    B --> C{{"Stratified split<br/>80 / 20"}}
+    C -->|"614 rows"| D["Training set"]
+    C -->|"154 rows"| E["Test set<br/>never resampled"]
+    subgraph P ["imblearn Pipeline (fitted on training data only)"]
+        direction LR
+        F["Median<br/>imputation"] --> G["Standard<br/>scaling"] --> H["SMOTE<br/>400 / 400"] --> I["Classifier"]
+    end
+    D --> P
+    P --> J["5-fold<br/>cross-validation"]
+    P --> K["Final evaluation"]
+    E --> K
 ```
-Problem Definition → Data Selection → Data Understanding → Data Cleaning → Data Transformation
-→ Exploratory Data Analysis → Model Construction → Model Evaluation → Interpretation → Knowledge / Insights
-```
 
-![KDD workflow](results/figures/01_kdd_workflow.png)
+**Why this design?**
 
-## Models Used
+* **The split comes first.** Medians, scaling statistics and synthetic SMOTE samples are learned **only from training data**, so the test set stays truly unseen.
+* **SMOTE sits inside the pipeline.** During cross-validation it is re-applied to each training fold only, never to the validation fold.
+* **Imbalance handling pays off.** Without it, Logistic Regression's cross-validated recall drops to **0.57**. With SMOTE it rises to **0.72**, while ROC-AUC stays essentially the same.
+* **Reproducible.** `random_state = 42` everywhere; repeated runs produce byte-identical results.
 
-| Model | Key settings |
+---
+
+## 🔬 Exploratory Data Analysis
+
+<p align="center">
+  <img src="results/figures/05_glucose_by_outcome.png" alt="Glucose distribution by outcome" width="48%">
+  <img src="results/figures/09_correlation_heatmap.png" alt="Correlation heatmap" width="45%">
+</p>
+
+| Insight | Evidence |
 |---|---|
-| Logistic Regression | `max_iter=1000` |
-| K-Nearest Neighbors | `n_neighbors=15` |
-| Decision Tree | `max_depth=5`, `min_samples_leaf=5` |
-| Random Forest | `n_estimators=300`, `min_samples_leaf=2` |
-| XGBoost | `n_estimators=200`, `max_depth=3`, `learning_rate=0.05`, `subsample=0.8`, `colsample_bytree=0.8` |
+| 🍬 **Glucose separates the classes best** | Median 140 vs. 107 mg/dL; correlation with Outcome **0.49** |
+| ⚖️ **BMI is higher in diabetic patients** | Median 34.3 vs. 30.1 kg/m²; r = 0.31 |
+| 🎂 **Diabetic patients tend to be older** | Median age 36 vs. 27 years |
+| 🔗 **Moderate feature correlations** | SkinThickness–BMI 0.65, Glucose–Insulin 0.58: no feature needs to be removed |
+| 🌫️ **Every feature overlaps between classes** | No single measurement is enough, so a multivariate model is needed |
 
-## Evaluation Metrics
+*These are statistical associations in this sample, not causal effects.*
 
-Accuracy, Precision, Recall (sensitivity), F1 score and ROC-AUC, plus specificity, confusion matrices and ROC curves. Recall gets special attention because a missed diabetic patient (false negative) is the costliest error in a screening context.
+---
 
-## Results
+## 🤖 Models
 
-All numbers below come from executing `notebooks/Diabetes_Onset_Prediction.ipynb`. They are saved in `results/model_comparison.csv` and `results/metrics.csv`.
+| Model | Paradigm | Configuration |
+|---|---|---|
+| Logistic Regression | Linear, interpretable baseline | `max_iter=1000` |
+| K-Nearest Neighbors | Instance-based (distance) | `n_neighbors=15` |
+| Decision Tree | Rule-based tree | `max_depth=5`, `min_samples_leaf=5` |
+| Random Forest | Bagging ensemble | `n_estimators=300`, `min_samples_leaf=2` |
+| XGBoost | Gradient boosting | `n_estimators=200`, `max_depth=3`, `learning_rate=0.05`, `subsample=0.8`, `colsample_bytree=0.8` |
 
-### Test-set comparison (154 patients, sorted by ROC-AUC)
+All models are evaluated on **Accuracy, Precision, Recall, F1 and ROC-AUC**, plus specificity, confusion matrices and ROC curves.
+**Recall** gets special attention: in screening, a missed diabetic patient (false negative) is costlier than a false alarm, which would lead to a follow-up test.
+
+---
+
+## 📊 Results
+
+> All numbers below come from executing the notebook and are saved in [`results/model_comparison.csv`](results/model_comparison.csv) and [`results/metrics.csv`](results/metrics.csv).
+
+### Hold-out test set (154 patients, sorted by ROC-AUC)
 
 | Model | Accuracy | Precision | Recall | F1 | ROC-AUC |
-|---|---|---|---|---|---|
+|---|---:|---:|---:|---:|---:|
 | XGBoost | 0.7532 | 0.6250 | 0.7407 | 0.6780 | 0.8263 |
 | Logistic Regression | 0.7078 | 0.5738 | 0.6481 | 0.6087 | 0.8113 |
-| **Random Forest** | **0.7468** | **0.6154** | **0.7407** | **0.6723** | **0.8094** |
+| 🏆 **Random Forest** | **0.7468** | **0.6154** | **0.7407** | **0.6723** | **0.8094** |
 | K-Nearest Neighbors | 0.6948 | 0.5455 | 0.7778 | 0.6412 | 0.7974 |
 | Decision Tree | 0.7273 | 0.5833 | 0.7778 | 0.6667 | 0.7616 |
 
-### 5-fold cross-validation on the training set (mean ± std)
+<details>
+<summary><b>5-fold cross-validation on the training set (mean ± std)</b></summary>
 
 | Model | Accuracy | Precision | Recall | F1 | ROC-AUC |
-|---|---|---|---|---|---|
+|---|---:|---:|---:|---:|---:|
 | Logistic Regression | 0.772 ± 0.015 | 0.658 ± 0.026 | 0.724 ± 0.045 | 0.689 ± 0.021 | 0.843 ± 0.020 |
 | K-Nearest Neighbors | 0.728 ± 0.054 | 0.588 ± 0.070 | 0.790 ± 0.020 | 0.672 ± 0.047 | 0.820 ± 0.045 |
 | Decision Tree | 0.697 ± 0.029 | 0.560 ± 0.047 | 0.687 ± 0.069 | 0.612 ± 0.013 | 0.762 ± 0.013 |
 | Random Forest | 0.779 ± 0.009 | 0.672 ± 0.022 | 0.715 ± 0.028 | 0.692 ± 0.009 | 0.829 ± 0.025 |
 | XGBoost | 0.751 ± 0.027 | 0.632 ± 0.041 | 0.687 ± 0.058 | 0.657 ± 0.040 | 0.822 ± 0.030 |
 
-### Final model: Random Forest
+</details>
 
-* Test set: **Accuracy 0.747, Precision 0.615, Recall 0.741, F1 0.672, ROC-AUC 0.809, Specificity 0.750**
-* Confusion matrix (test): TP = 40, TN = 75, FP = 25, FN = 14
-* Cross-validated ROC-AUC: 0.829 ± 0.025
+<p align="center">
+  <img src="results/figures/14_roc_curves.png" alt="ROC curves of all models" width="47%">
+  <img src="results/figures/12_model_comparison.png" alt="Test-set metric comparison" width="51%">
+</p>
 
-**Why Random Forest and not XGBoost?** XGBoost had the best *test* ROC-AUC, accuracy, precision and F1. However, its cross-validated recall was only 0.687, below the 0.70 screening requirement. Random Forest was the only model to rank first or second on most metrics in **both** cross-validation and the test set, and it had the highest overall score under the selection rule. The margins between the top models are small; see *Limitations*.
+### 🏆 Why Random Forest?
 
-### Most important features
+No single model wins every metric, so the final model was chosen with a **predefined, screening-oriented rule** instead of accuracy alone:
 
-Glucose is by far the most influential feature in every model (Random Forest importance 0.276; mean |SHAP| 0.146), followed by **BMI**, **Age** and **DiabetesPedigreeFunction**. Higher values of these features push predictions toward diabetes. These are predictive associations, not causal effects.
+1. **Recall ≥ 0.70 in both cross-validation and the test set.** The model must reliably catch diabetic patients.
+2. Among eligible models, pick the highest **average of all five metrics**, averaged over **cross-validation and test**. This rewards consistency, not one lucky split.
 
-| | |
-|---|---|
-| ![ROC curves](results/figures/14_roc_curves.png) | ![SHAP summary](results/figures/16_shap_summary.png) |
+| Model | CV mean | Test mean | CV recall | Test recall | Overall | Eligible |
+|---|---:|---:|---:|---:|---:|:---:|
+| **Random Forest** | 0.7374 | 0.7169 | 0.715 | 0.741 | **0.7272** | ✅ |
+| XGBoost | 0.7096 | 0.7246 | 0.687 | 0.741 | 0.7171 | ❌ |
+| K-Nearest Neighbors | 0.7196 | 0.6913 | 0.790 | 0.778 | 0.7054 | ✅ |
+| Logistic Regression | 0.7372 | 0.6699 | 0.724 | 0.648 | 0.7036 | ❌ |
+| Decision Tree | 0.6637 | 0.7033 | 0.687 | 0.778 | 0.6835 | ❌ |
 
-## Project Structure
+* **XGBoost** had the best *test* scores, but its cross-validated recall (0.687) missed the threshold.
+* **Logistic Regression** was best in cross-validation but had the lowest test recall (it missed 19 of 54 diabetic patients).
+* **Random Forest** ranks first or second on most metrics in **both** evaluations. On the test set it catches **40 of 54** diabetic patients with **specificity 0.75**.
+
+<p align="center">
+  <img src="results/figures/13_confusion_matrices.png" alt="Confusion matrices of all models" width="85%">
+</p>
+
+---
+
+## 🔍 Model Interpretation
+
+<p align="center">
+  <img src="results/figures/16_shap_summary.png" alt="SHAP summary plot for the Random Forest" width="62%">
+</p>
+
+| Feature | Random Forest importance | Mean \|SHAP\| | Higher value pushes prediction |
+|---|---:|---:|---|
+| **Glucose** | 0.276 | 0.146 | ⬆️ toward diabetes |
+| **BMI** | 0.175 | 0.094 | ⬆️ toward diabetes |
+| **Age** | 0.126 | 0.065 | ⬆️ toward diabetes |
+| **DiabetesPedigreeFunction** | 0.111 | 0.043 | ⬆️ toward diabetes |
+| Insulin | 0.089 | 0.034 | low values push strongly toward *no* diabetes |
+| BloodPressure | 0.076 | 0.015 | weak / mixed |
+
+**Key takeaways**
+
+* **Glucose dominates** in every view: EDA, correlations, logistic-regression coefficients, impurity importance and SHAP. High glucose can raise the predicted probability by up to about **30 percentage points**.
+* **BMI, Age and family history (pedigree function)** form the next tier of predictors, consistent with published work on this dataset.
+* Four independent interpretation methods agree, which makes the ranking trustworthy. It still describes **how the model uses the data**, not medical causation.
+
+---
+
+## 🧪 Try a Prediction
+
+The notebook defines `predict_diabetes()`, which applies the same cleaning rule and the fitted final pipeline to a single patient:
+
+```python
+predict_diabetes(Pregnancies=6, Glucose=168, BloodPressure=74, SkinThickness=35,
+                 Insulin=200, BMI=38.2, DiabetesPedigreeFunction=0.85, Age=50)
+```
+
+```text
+Predicted class: Diabetes likely (1)
+Probability of diabetes: 87.2%
+Note: academic ML demonstration - NOT a medical diagnosis.
+```
+
+| Example patient | Glucose | BMI | Age | Prediction | P(diabetes) |
+|---|---:|---:|---:|---|---:|
+| A | 168 | 38.2 | 50 | Diabetes likely | 87.2 % |
+| B | 89 | 24.5 | 24 | Diabetes unlikely | 1.7 % |
+| C (Insulin and SkinThickness not measured) | 130 | 32.0 | 35 | Diabetes likely | 66.7 % |
+
+---
+
+## 📁 Project Structure
 
 ```
-diabetes-onset-prediction/
 ├── README.md
 ├── requirements.txt
 ├── LICENSE
 ├── .gitignore
 ├── data/
-│   └── pima-indians-diabetes.csv           # dataset with header row
+│   └── pima-indians-diabetes.csv            # dataset with header row (768 × 9)
 ├── notebooks/
-│   └── Diabetes_Onset_Prediction.ipynb     # main, fully executed notebook
+│   └── Diabetes_Onset_Prediction.ipynb      # main, fully executed notebook
 ├── src/
-│   ├── preprocessing.py                    # loading, invalid-zero handling, split, imputer/scaler
-│   ├── models.py                           # model definitions, SMOTE pipelines, CV helper
-│   └── evaluation.py                       # metrics, confusion matrices, ROC curves
+│   ├── preprocessing.py                     # loading, invalid-zero handling, split, imputer/scaler
+│   ├── models.py                            # model definitions, SMOTE pipelines, cross-validation
+│   └── evaluation.py                        # metrics, confusion matrices, ROC curves
 ├── reports/
-│   └── Diabetes_Onset_Prediction_Report.pdf  # academic project report (PDF)
+│   └── Diabetes_Onset_Prediction_Report.pdf # academic project report
 ├── presentation/
-│   └── Diabetes_Onset_Prediction_Presentation.md  # 12-slide presentation with speaker notes
+│   └── Diabetes_Onset_Prediction_Presentation.md  # 12 slides + speaker notes
 └── results/
-    ├── figures/                            # 17 figures generated by the notebook
-    ├── model_comparison.csv                # main metric table (test set)
-    └── metrics.csv                         # detailed metrics incl. confusion counts and CV scores
+    ├── figures/                             # 17 figures generated by the notebook
+    ├── model_comparison.csv                 # main metric table (test set)
+    └── metrics.csv                          # detailed metrics incl. confusion counts and CV scores
 ```
 
-## Installation
+---
 
-Python 3.10 or newer is recommended.
+## 🚀 Getting Started
+
+**1. Clone and install** (Python 3.10 or newer)
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/hardikjain2005/-Predictive-Analytics-CA-3-Diabetes-Onset-Prediction-Using-Machine-Learning.git diabetes-onset-prediction
 cd diabetes-onset-prediction
 python3 -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-## Running the Notebook
-
-Interactive:
+**2. Run the notebook**
 
 ```bash
-jupyter notebook notebooks/Diabetes_Onset_Prediction.ipynb
+jupyter notebook notebooks/Diabetes_Onset_Prediction.ipynb     # then: Kernel → Restart & Run All
 ```
 
-Then choose **Kernel → Restart & Run All**.
-
-Non-interactive, which re-executes every cell and regenerates all figures and CSV files:
+or re-execute every cell non-interactively, which also regenerates all figures and CSV files:
 
 ```bash
 jupyter nbconvert --to notebook --execute --inplace notebooks/Diabetes_Onset_Prediction.ipynb
 ```
 
-The full run takes well under a minute on a laptop. The results above were produced with Python 3.13, pandas 3.0.6, NumPy 2.5.3, scikit-learn 1.9.1, imbalanced-learn 0.14.2, XGBoost 3.4.1 and SHAP 0.53.0. Other library versions may produce slightly different numbers.
+The full run takes under a minute on a laptop. If `data/pima-indians-diabetes.csv` is missing, the notebook downloads it automatically.
 
-## Technologies Used
+> [!NOTE]
+> Results were produced with Python 3.13, pandas 3.0.6, NumPy 2.5.3, scikit-learn 1.9.1, imbalanced-learn 0.14.2, XGBoost 3.4.1 and SHAP 0.53.0. Other library versions may give slightly different numbers.
 
-Python · Pandas · NumPy · Matplotlib · Seaborn · Scikit-learn · imbalanced-learn · XGBoost · SHAP · Jupyter Notebook
+**Tech stack:** Python · pandas · NumPy · Matplotlib · Seaborn · scikit-learn · imbalanced-learn · XGBoost · SHAP · Jupyter
 
-## Limitations
+---
 
-* Small dataset (768 patients; 154 in the test set), so metrics carry considerable uncertainty.
-* Narrow demographics (Pima Indian women aged 21 or older); results may not generalise to other populations.
-* Historical data with a possible sampling bias from one population study.
-* Heavy missingness in Insulin (48.7 %) and SkinThickness (29.6 %), filled by median imputation.
-* SMOTE creates synthetic, not real, patients.
-* No extensive hyperparameter tuning, a fixed 0.5 threshold, uncalibrated probabilities and no external validation.
-* A predictive model is not a medical diagnosis, and feature importance is not causation.
+## 🚧 Limitations & Future Scope
 
-## Future Scope
+| Limitations | Future scope |
+|---|---|
+| Small dataset (768 patients; 154 in the test set), so metrics carry real uncertainty | Larger, more diverse and more recent datasets |
+| Narrow demographics: Pima Indian women aged 21 or older | External validation on other populations and hospitals |
+| Heavy missingness in Insulin and SkinThickness, filled by median imputation | Additional clinical features such as HbA1c |
+| SMOTE samples are synthetic, not real patients | Cross-validated / nested hyperparameter tuning |
+| Fixed 0.5 threshold and uncalibrated probabilities | Probability calibration and cost-sensitive threshold selection |
+| No external validation; prediction ≠ diagnosis | Per-patient SHAP explanations, a screening-support deployment and drift monitoring |
 
-Larger and more diverse datasets, external validation, cross-validated hyperparameter optimisation, per-patient explanations (SHAP waterfall plots), probability calibration and threshold selection, additional clinical features (e.g. HbA1c), deployment as a screening-support tool, and monitoring for model drift.
+---
 
-## Disclaimer
+## 📚 References
 
-This repository is an academic project created for a Predictive Analytics course. It is intended for learning and research only. It is **not** a medical device or diagnostic system, it has not been clinically validated, and it must not be used to diagnose, treat or make decisions about any person's health. Consult a qualified healthcare professional for medical advice.
+1. J. W. Smith *et al.*, "Using the ADAP learning algorithm to forecast the onset of diabetes mellitus," *Proc. Annu. Symp. Comput. Appl. Med. Care*, pp. 261–265, 1988.
+2. N. V. Chawla *et al.*, "SMOTE: Synthetic minority over-sampling technique," *JAIR*, vol. 16, pp. 321–357, 2002.
+3. L. Breiman, "Random forests," *Machine Learning*, vol. 45, no. 1, pp. 5–32, 2001.
+4. T. Chen and C. Guestrin, "XGBoost: A scalable tree boosting system," *Proc. ACM SIGKDD*, pp. 785–794, 2016.
+5. S. M. Lundberg and S.-I. Lee, "A unified approach to interpreting model predictions," *NeurIPS*, 2017.
+6. R. D. Joshi and C. K. Dhakal, "Predicting type 2 diabetes using logistic regression and machine learning approaches," *IJERPH*, vol. 18, no. 14, art. 7346, 2021.
 
-## License
+The complete list of 18 references, with a literature review, is in the [project report](reports/Diabetes_Onset_Prediction_Report.pdf).
 
-Code is released under the MIT License (see `LICENSE`). The Pima Indians Diabetes Dataset is subject to the terms of its original providers.
+---
+
+## ⚖️ Disclaimer & License
+
+This repository is an academic project for a Predictive Analytics course, intended for learning and research only. It is **not** a medical device or diagnostic system and has not been clinically validated. Always consult a qualified healthcare professional for medical advice.
+
+Code is released under the [MIT License](LICENSE). The Pima Indians Diabetes Dataset is subject to the terms of its original providers.
+
+<div align="center">
+
+Made by **Hardik Jain** · Predictive Analytics
+
+</div>
