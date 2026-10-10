@@ -35,18 +35,25 @@ COLUMNS = FEATURES + [TARGET]
 ZERO_AS_MISSING = ["Glucose", "BloodPressure", "SkinThickness", "Insulin", "BMI"]
 
 DATA_FILENAME = "pima-indians-diabetes.csv"
-SOURCE_URL = ("https://raw.githubusercontent.com/jbrownlee/Datasets/master/"
-              "pima-indians-diabetes.data.csv")
+
+# The project's own GitHub repository: the notebook reads the dataset from here
+# when it runs outside the project folder (e.g. in Google Colab).
+GITHUB_REPO = ("hardikjain2005/"
+               "-Predictive-Analytics-CA-3-Diabetes-Onset-Prediction-Using-Machine-Learning")
+GITHUB_DATA_URL = (f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/"
+                   f"data/{DATA_FILENAME}")
+# Original header-less source of the dataset
+ORIGINAL_SOURCE_URL = ("https://raw.githubusercontent.com/jbrownlee/Datasets/master/"
+                       "pima-indians-diabetes.data.csv")
 
 
-def download_data(dest, url=SOURCE_URL):
-    """Download the original header-less CSV and save it with column headers.
+def _read_url(url):
+    """Return the text at url.
 
     Uses certifi's certificate bundle when available, because some Python
     installations (e.g. python.org builds on macOS) ship without root
     certificates and would otherwise fail SSL verification.
     """
-    import io
     import ssl
     import urllib.request
 
@@ -56,11 +63,14 @@ def download_data(dest, url=SOURCE_URL):
     except ImportError:
         context = ssl.create_default_context()
     with urllib.request.urlopen(url, context=context, timeout=30) as response:
-        text = response.read().decode("utf-8")
-    df = pd.read_csv(io.StringIO(text), header=None, names=COLUMNS)
+        return response.read().decode("utf-8")
+
+
+def download_data(dest, url=GITHUB_DATA_URL):
+    """Download the dataset from url and save it (with headers) at dest."""
     dest = Path(dest)
     dest.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(dest, index=False)
+    load_data(url).to_csv(dest, index=False)
     return dest
 
 
@@ -85,13 +95,22 @@ def find_data_file(filename=DATA_FILENAME):
 def load_data(path=None):
     """Load the Pima Indians Diabetes dataset as a DataFrame.
 
-    Works both for the headered CSV shipped in data/ and for the original
-    header-less file from the jbrownlee/Datasets repository.
+    path can be a local file or an http(s) URL (e.g. GITHUB_DATA_URL). Works
+    both for the headered CSV in data/ and for the original header-less file
+    from the jbrownlee/Datasets repository.
     """
-    path = Path(path) if path is not None else find_data_file()
-    df = pd.read_csv(path)
+    import io
+
+    if path is None:
+        path = find_data_file()
+    if str(path).startswith(("http://", "https://")):
+        text = _read_url(str(path))
+        read = lambda **kw: pd.read_csv(io.StringIO(text), **kw)
+    else:
+        read = lambda **kw: pd.read_csv(path, **kw)
+    df = read()
     if list(df.columns) != COLUMNS:
-        df = pd.read_csv(path, header=None, names=COLUMNS)
+        df = read(header=None, names=COLUMNS)
     return df
 
 

@@ -4,6 +4,8 @@
 
 **An end-to-end Predictive Analytics / KDD project that estimates diabetes risk from routine diagnostic measurements**
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hardikjain2005/-Predictive-Analytics-CA-3-Diabetes-Onset-Prediction-Using-Machine-Learning/blob/main/notebooks/Diabetes_Onset_Prediction.ipynb)
+
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Jupyter](https://img.shields.io/badge/Jupyter-Notebook-F37626?logo=jupyter&logoColor=white)](notebooks/Diabetes_Onset_Prediction.ipynb)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-ML-F7931E?logo=scikitlearn&logoColor=white)](https://scikit-learn.org/)
@@ -316,6 +318,18 @@ Note: academic ML demonstration - NOT a medical diagnosis.
 
 ## 🚀 Getting Started
 
+### ☁️ Option A: Run in Google Colab (no installation)
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hardikjain2005/-Predictive-Analytics-CA-3-Diabetes-Onset-Prediction-Using-Machine-Learning/blob/main/notebooks/Diabetes_Onset_Prediction.ipynb)
+
+1. Click the badge above. The notebook opens in Google Colab.
+2. Choose **Runtime → Run all**.
+
+The first code cell detects Colab, **clones this repository** (for the helper modules in `src/`) and installs any missing libraries. The dataset is then **read directly from this GitHub repository**:
+`https://raw.githubusercontent.com/hardikjain2005/-Predictive-Analytics-CA-3-Diabetes-Onset-Prediction-Using-Machine-Learning/main/data/pima-indians-diabetes.csv`
+
+### 💻 Option B: Run locally
+
 **1. Clone and install** (Python 3.10 or newer)
 
 ```bash
@@ -338,7 +352,7 @@ or re-execute every cell non-interactively, which also regenerates all figures a
 jupyter nbconvert --to notebook --execute --inplace notebooks/Diabetes_Onset_Prediction.ipynb
 ```
 
-The full run takes under a minute on a laptop. If `data/pima-indians-diabetes.csv` is missing, the notebook downloads it automatically.
+The full run takes under a minute on a laptop. If `data/pima-indians-diabetes.csv` is missing, the notebook reads the dataset directly from GitHub instead.
 
 > [!NOTE]
 > Results were produced with Python 3.13, pandas 3.0.6, NumPy 2.5.3, scikit-learn 1.9.1, imbalanced-learn 0.14.2, XGBoost 3.4.1 and SHAP 0.53.0. Other library versions may give slightly different numbers.
