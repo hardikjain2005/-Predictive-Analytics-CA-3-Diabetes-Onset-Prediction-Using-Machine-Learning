@@ -67,8 +67,8 @@
 |---|---|---|
 | 📓 Jupyter Notebook | [`Diabetes_Onset_Prediction.ipynb`](notebooks/Diabetes_Onset_Prediction.ipynb) | Fully executed; 20 sections covering both datasets, with an explanation before every step |
 | 🗃️ Datasets | [`data/`](data) | Both raw datasets plus the cleaned versions in `data/processed/` |
-| 📄 Project Report | [`Diabetes_Onset_Prediction_Report.pdf`](Diabetes_Onset_Prediction_Report.pdf) | 6 chapters: Introduction, Literature Review, Workflow, Results, Conclusion, References (covers Dataset 1) |
-| 🎤 Interactive Presentation | [`Diabetes_Onset_Prediction_Presentation .pptx`](Diabetes_Onset_Prediction_Presentation%20.pptx) | PowerPoint deck with clickable agenda and Model Explorer (covers Dataset 1) |
+| 📄 Project Report | [`Diabetes_Onset_Prediction_Report.pdf`](Diabetes_Onset_Prediction_Report.pdf) | 6 chapters (Introduction, Literature Review, Workflow, Results and Discussion, Conclusion, References), covering both datasets |
+| 🎤 Interactive Presentation | [`Diabetes_Onset_Prediction_Presentation .pptx`](Diabetes_Onset_Prediction_Presentation%20.pptx) | 14-slide PowerPoint deck covering both datasets, with clickable agenda, native charts and speaker notes |
 | 🧩 Source modules | [`src/`](src) | Reusable preprocessing, model and evaluation code for both datasets |
 | 📈 Results | [`results/`](results) | Metric tables (CSV) and 29 generated figures |
 
@@ -124,6 +124,10 @@ The raw file reports **no missing values**, but five columns contain physiologic
 | BMI | 11 | 1.43 % |
 
 Dropping incomplete rows would discard almost half the data, so the missing values are **imputed with the training-set median** instead.
+
+### Why two datasets?
+
+The faculty asked for one additional dataset. The UCI Early Stage dataset was chosen because it describes diabetes risk with a **different kind of information**: self-reported symptoms instead of laboratory measurements. Its features, population and target coding are completely different from Pima, so the two datasets are **analysed independently and never merged**. Dataset 2 gives an independent comparison perspective: the same modelling approach is applied to it, and only the *results* are compared.
 
 ### Dataset 2 – Early Stage Diabetes Risk Prediction
 
@@ -422,8 +426,8 @@ Note: academic ML demonstration - NOT a medical diagnosis.
 ├── requirements.txt
 ├── LICENSE
 ├── .gitignore
-├── Diabetes_Onset_Prediction_Report.pdf     # academic project report (Dataset 1)
-├── Diabetes_Onset_Prediction_Presentation .pptx  # interactive PowerPoint deck (Dataset 1)
+├── Diabetes_Onset_Prediction_Report.pdf     # academic project report (both datasets)
+├── Diabetes_Onset_Prediction_Presentation .pptx  # 14-slide PowerPoint deck (both datasets)
 ├── data/
 │   ├── pima-indians-diabetes.csv            # Dataset 1 with header row (768 × 9)
 │   ├── early_stage_diabetes_risk_prediction.csv  # Dataset 2 from UCI (520 × 17, CC BY 4.0)
@@ -490,6 +494,10 @@ The full run takes under a minute on a laptop. If `data/pima-indians-diabetes.cs
 > [!NOTE]
 > Results were produced with Python 3.13, pandas 3.0.6, NumPy 2.5.3, scikit-learn 1.9.1, imbalanced-learn 0.14.2, XGBoost 3.4.1 and SHAP 0.53.0. Other library versions may give slightly different numbers.
 
+### 📦 Dependencies
+
+All dependencies are listed in [`requirements.txt`](requirements.txt): pandas, NumPy, Matplotlib, Seaborn, scikit-learn, imbalanced-learn, XGBoost (optional), SHAP, certifi, and Jupyter / nbconvert / ipykernel for running the notebook. The project was verified in a fresh environment created only from `requirements.txt`. Every result file was reproduced byte-for-byte, and Dataset 2 was re-downloaded automatically.
+
 **Tech stack:** Python · pandas · NumPy · Matplotlib · Seaborn · scikit-learn · imbalanced-learn · XGBoost · SHAP · Jupyter
 
 ---
@@ -519,8 +527,9 @@ The full run takes under a minute on a laptop. If `data/pima-indians-diabetes.cs
 6. R. D. Joshi and C. K. Dhakal, "Predicting type 2 diabetes using logistic regression and machine learning approaches," *IJERPH*, vol. 18, no. 14, art. 7346, 2021.
 7. M. M. F. Islam, R. Ferdousi, S. Rahman and H. Y. Bushra, "Likelihood prediction of diabetes at early stage using data mining techniques," in *Computer Vision and Machine Intelligence in Medical Image Analysis*, Advances in Intelligent Systems and Computing, Springer, 2019, pp. 113–125, doi: 10.1007/978-981-13-8798-2_12.
 8. "Early Stage Diabetes Risk Prediction" [Dataset], UCI Machine Learning Repository, 2020, doi: 10.24432/C5VG8H.
+9. V. Vakil, S. Pachchigar, C. Chavda and S. Soni, "Explainable predictions of different machine learning algorithms used to predict early stage diabetes," arXiv:2111.09939, 2021.
 
-A literature review for Dataset 1 is in the [project report](Diabetes_Onset_Prediction_Report.pdf); the notebook's Section 20 lists all references used.
+The [project report](Diabetes_Onset_Prediction_Report.pdf) contains a literature review covering both datasets and the full list of 21 references; the notebook's Section 20 lists the references used there.
 
 ---
 
