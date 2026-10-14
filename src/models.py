@@ -19,7 +19,13 @@ from sklearn.model_selection import StratifiedKFold, cross_validate
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier
-from xgboost import XGBClassifier
+
+try:
+    from xgboost import XGBClassifier
+    XGBOOST_AVAILABLE = True
+except ImportError:  # handled gracefully: the model is simply skipped
+    XGBClassifier = None
+    XGBOOST_AVAILABLE = False
 
 RANDOM_STATE = 42
 
@@ -27,7 +33,7 @@ RANDOM_STATE = 42
 def get_classifiers(random_state=RANDOM_STATE):
     """The five classifiers compared in the project, with simple,
     reasonable settings (no exhaustive hyperparameter search)."""
-    return {
+    models = {
         "Logistic Regression": LogisticRegression(
             max_iter=1000, random_state=random_state
         ),
@@ -41,7 +47,9 @@ def get_classifiers(random_state=RANDOM_STATE):
             random_state=random_state,
             n_jobs=-1,
         ),
-        "XGBoost": XGBClassifier(
+    }
+    if XGBOOST_AVAILABLE:
+        models["XGBoost"] = XGBClassifier(
             n_estimators=200,
             max_depth=3,
             learning_rate=0.05,
@@ -50,8 +58,10 @@ def get_classifiers(random_state=RANDOM_STATE):
             eval_metric="logloss",
             random_state=random_state,
             n_jobs=-1,
-        ),
-    }
+        )
+    else:
+        print("XGBoost is not installed - skipping it (pip install xgboost).")
+    return models
 
 
 def build_pipeline(classifier, use_smote=True, random_state=RANDOM_STATE):

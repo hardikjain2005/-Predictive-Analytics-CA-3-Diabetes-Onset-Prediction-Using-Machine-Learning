@@ -47,16 +47,17 @@ def evaluate_models(models, X_test, y_test):
     )
 
 
-def print_classification_reports(models, X_test, y_test):
+def print_classification_reports(models, X_test, y_test, target_names=CLASS_NAMES):
     for name, model in models.items():
         print("=" * 60)
         print(name)
         print("=" * 60)
         print(classification_report(y_test, model.predict(X_test),
-                                    target_names=CLASS_NAMES, digits=3))
+                                    target_names=target_names, digits=3))
 
 
-def plot_confusion_matrices(models, X_test, y_test, save_path=None):
+def plot_confusion_matrices(models, X_test, y_test, save_path=None,
+                            title="Confusion Matrices on the Test Set"):
     """One labelled confusion matrix per model in a single figure."""
     n = len(models)
     cols = 3
@@ -77,14 +78,14 @@ def plot_confusion_matrices(models, X_test, y_test, save_path=None):
         ax.set_ylabel("Actual label")
     for ax in axes[n:]:
         ax.axis("off")
-    fig.suptitle("Confusion Matrices on the Test Set", fontsize=15)
+    fig.suptitle(title, fontsize=15)
     fig.tight_layout()
     if save_path:
         fig.savefig(save_path, dpi=150, bbox_inches="tight")
     plt.show()
 
 
-def plot_roc_curves(models, X_test, y_test, save_path=None):
+def plot_roc_curves(models, X_test, y_test, save_path=None, title="ROC Curves - Test Set"):
     """ROC curves of all models on one axis, with AUC in the legend."""
     fig, ax = plt.subplots(figsize=(8, 6.5))
     for name, model in models.items():
@@ -93,7 +94,7 @@ def plot_roc_curves(models, X_test, y_test, save_path=None):
         auc = roc_auc_score(y_test, y_prob)
         ax.plot(fpr, tpr, linewidth=2, label=f"{name} (AUC = {auc:.3f})")
     ax.plot([0, 1], [0, 1], "k--", linewidth=1, label="Random guess (AUC = 0.500)")
-    ax.set_title("ROC Curves - Test Set")
+    ax.set_title(title)
     ax.set_xlabel("False Positive Rate (1 - Specificity)")
     ax.set_ylabel("True Positive Rate (Recall / Sensitivity)")
     ax.legend(loc="lower right")

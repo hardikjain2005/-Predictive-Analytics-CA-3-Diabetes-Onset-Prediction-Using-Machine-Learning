@@ -1,0 +1,11 @@
+Dataset,Model,Accuracy,Precision,Recall,F1,ROC-AUC,CV ROC-AUC,Final model
+1 - Pima,XGBoost,0.7532,0.625,0.7407,0.678,0.8263,0.8217,
+1 - Pima,Logistic Regression,0.7078,0.5738,0.6481,0.6087,0.8113,0.8427,
+1 - Pima,Random Forest,0.7468,0.6154,0.7407,0.6723,0.8094,0.829,yes
+1 - Pima,K-Nearest Neighbors,0.6948,0.5455,0.7778,0.6412,0.7974,0.8196,
+1 - Pima,Decision Tree,0.7273,0.5833,0.7778,0.6667,0.7616,0.7617,
+2 - Early Stage,Random Forest,0.902,0.9412,0.9143,0.9275,0.9643,0.9772,yes
+2 - Early Stage,Decision Tree,0.8824,0.9677,0.8571,0.9091,0.9562,0.9004,
+2 - Early Stage,XGBoost,0.8824,1.0,0.8286,0.9062,0.9464,0.9802,
+2 - Early Stage,K-Nearest Neighbors,0.7843,1.0,0.6857,0.8136,0.9259,0.9657,
+2 - Early Stage,Logistic Regression,0.8235,0.9333,0.8,0.8615,0.925,0.9721,
